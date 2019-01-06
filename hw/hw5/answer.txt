@@ -1,0 +1,13 @@
+12.17
+a. The program doesn't wait for the thread to be created but instead exits immediately
+after calling the program
+
+b. pthread_exit(NULL) instead of exit(0) would wait for the thread to finish before
+terminating and exit the program as well.
+
+12.25
+Echo_cnt is safe because it's locked by a mutex, so that it can't step on other
+thread's data when it's running.
+It's not reentrant because the mutex lock is shared by each time the function is called.
+Also the global byte_cnt variable is changed each time the function is called.
+

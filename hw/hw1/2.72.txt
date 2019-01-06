@@ -1,0 +1,7 @@
+2.72
+a. Since sizeof() function returns a type size_t value, the size_t value is an unsigned bit that will always be greater 0, and since when subtracting an unsigned integer with an integer, the result will always be unsigned, so it'll always be positive.
+b. 
+void copy_int(int val, void *buf, int maxbytes) {
+if (maxbytes >= (int) sizeof(val))
+	memcpy(buf, (void *) &val, sizeof(val));
+}

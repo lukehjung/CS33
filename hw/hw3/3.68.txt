@@ -1,0 +1,20 @@
+3.68 
+
+A = 9, B = 5
+
+Going line by line.
+
+movslq 8(%rsi), %rax shows that since an int is aligned by 4,
+4 < B <= 8.
+
+addq 32(%rsi), %rax shows that since a long is aligned by 8 and it's size of B and
+a short is 4 bytes, it'll be 24 < 12 + A*2 <= 32, or 6 < A <= 10
+
+movq %rax. 184(%rdi) shows that since long is aligned by 8, and before it is the size 
+of the two variables together, it's 176 < A*B*4 <= 184 or 44 < A*B <= 46
+
+4 < B <= 8
+5 < A <= 10
+44 < A*B <= 46
+
+Therefore A = 9, B = 5

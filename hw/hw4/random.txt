@@ -1,0 +1,40 @@
+Luke Jung
+904-982-644
+CS33 Fall Eggert
+
+random.txt 
+
+A. (float) x == (float) dx 
+This is always be right because an int can be 
+converted to double without changing value,
+and when they're both converted to floats, there's
+no overflow.
+
+B. dx - dy == (double) (x-y)
+This is false at the extreme values of int, because
+for example at int_min, the value overflows using 
+-fwrapv, while the double would simply move the decimal
+over and wouldn't.  Therefore, it's false.
+
+C. (dx + dy) + dz == dx + (dy + dz)
+This is false, because when doing arithmetic with floating
+point values, association is not ensured because of rounding,
+for example, if a and b values were normal sized decimals, 
+while the third, c, was one that was extremely small, close 
+to 0, the function (a + b) + c != a + (b + c), because the 
+c value will get truncated when added to the large number,
+while b + c first would account for the small number if 
+added first.
+
+D. (dx * dy) * dz == dx * (dy * dz)
+This is false, due to the example given in the textbook
+(1e20*1e20)*1e-20 evaluates to +infinity, while 
+1e20*(1e20*1e-20) evaluates to 1e20, so there exists an 
+error when dealing with infinities and overflow.  This
+also uses fwrapv.
+
+E. dx / dx == dz / dz
+False when dx or dz = 0 and the other does not.  This is
+because when anything is divided by 0, it becomes NaN,
+which will not compare correctly and not give a 1.
+

@@ -1,0 +1,14 @@
+a. False
+If the first value is INT_MIN, then since it's one number higher than the INT_MAX, the conversion from negative to positive would create an overflow that make the comparison wrong.
+b. False
+Shifting loses MSB when number is big enough.  Give constant like INT_MAX, the function would shift and lose the MSB and will turn out false.
+c. False
+Plugging in x=INT_MIN and y=INT_MIN, left side = 0 and right side would get an overflow, and assuming overflow's disappear when pushed off, would equal -1
+d. False
+If x and y have different signs, then changing the order will give different results.  For example, using -5 and 2, would get 3 on the left, but -7 on the right.
+e. True
+If you shift and cut off bits, it'll be less than the original number, but if you don't, it'll be equal.
+f. True
+Both sides are doing a simple right shift by 1, but the right side accounts for the logical shift by using a mask that will put a 1 on the MSB if it's needed.
+g. True
+Since 8 is a power of 2, we can use the shortcut that allows this trick.

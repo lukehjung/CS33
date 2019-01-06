@@ -1,0 +1,99 @@
+54e0f0	48 89 f2	mov %rsi,%rdx	rdx=7fffffffc7e0
+54e0f3	48 89 fe	mov %rdi,%rsi	rsi=2
+54e0f6	bf 02 00 00 00	mov $0x2,%edi	edi=2
+54e0fb	e9 a0 fd ff ff	jmpq 0x54dea0 54dea0
+54dea0	41 57	push %r15	M8[7fffffffc7d0]=0	rsp=7fffffffc7d0
+54dea2	41 56	push %r14	M8[7fffffffc7c8]=2	rsp=7fffffffc7c8
+54dea4	41 55	push %r13	M8[7fffffffc7b8]=b610c0 rsp=7fffffffc7b8
+54dea6	41 54	push %r12	M8[7fffffffc7b0]=208	rsp=7fffffffc7b0
+54dea8	55	push %rbp	M8[7fffffffc7a0]=7fffffffc8a0	rsp=7fffffffc7a0
+54dea9	53	push %rbx	M8[7fffffffc7a8]=0	rsp=7fffffffc7a8
+54deaa	48 83 ec 18	sub $0x18,%rsp	rsp=7fffffffc790
+54deae	83 ff 02	cmp $0x2,%edi	edi=2
+54deb1	0f 82 b1 01 00 00	jb 0x54e068 rip=54deb7
+54deb7	bd 01 00 00 00	mov $0x1,%ebp	ebp=1
+54debc	83 ff 03	cmp $0x3,%edi	edi=2
+54debf	76 0d	jbe 0x54dece ip=54dece
+54dec1	31 ed	xor %ebp,%ebp	ebp=0
+54dec3	83 ff 04	cmp $0x4,%edi
+54dec6	40 0f 95 c5	setne %bpl
+54deca	48 83 ed 01	sub $0x1,%rbp
+54dece	48 85 f6	test %rsi,%rsi	rsi=2
+54ded1	0f 8e 3d 01 00 00	jle 0x54e014 rip=54ded7
+54ded7	49 89 d6	mov %rdx,%r14	r14=7fffffffc7e0 
+54deda	41 89 fc	mov %edi,%r12d	r12d=2
+54dedd	48 89 e9	mov %rbp,%rcx	rcx=1
+54dee0	31 db	xor %ebx,%ebx	ebx=0
+54dee2	45 31 ff	xor %r15d,%r15d	r15d=0
+54dee5	45 31 ed	xor %r13d,%r13d	r13d=0
+54dee8	49 8b 3c de	mov (%r14,%rbx,8),%rdi	rdi=12a174b42
+54deec	89 f8	mov %edi,%eax	eax=2a174b42
+54deee	89 fa	mov %edi,%edx	edx=2a174b42
+54def0	83 e0 07	and $0x7,%eax	eax=2
+54def3	83 f8 01	cmp $0x1,%eax	eax=2
+54def6	74 68	je 0x54df60 rip=54def8
+54def8	83 e2 03	and $0x3,%edx	edx=2
+54defb	83 fa 02	cmp $0x2,%edx	edx=2
+54defe	74 3c	je 0x54df3c rip=54df3c
+54df00	83 f8 07	cmp $0x7,%eax	
+54df03	74 37	je 0x54df3c 
+54df3c	83 f8 07	cmp $0x7,%eax	eax=2
+54df3f	0f 84 2b 01 00 00	je 0x54e070 rip=54df45
+54df45	49 89 3c de	mov %rdi,(%r14,%rbx,8)	rdi=12a174b42
+54df49	48 c1 ff 02	sar $0x2,%rdi	rdi=4a85d2d0
+54df4d	41 83 fc 06	cmp $0x6,%r12d	r12d=2
+54df51	77 2d	ja 0x54df80 rip=54df53
+54df53	44 89 e0	mov %r12d,%eax	eax=2
+54df56	ff 24 c5 98 b6 5f 00	jmpq *0x5fb698(,%rax,8)	rip=54dfd8
+54df5d	0f 1f 00	nopl (%rax)
+54dfd8	48 0f af fd	imul %rbp,%rdi	rbp=1 rdi=4a85d2d0
+54dfdc	0f 90 c0	seto %al	al=0
+54dfdf	48 89 fd	mov %rdi,%rbp	rbp=4a85d2d0
+54dfe2	41 09 c7	or %eax,%r15d	eax=r15d=0
+54dfe5	eb b1	jmp 0x54df98 rip=54df98
+54dfe7	66 0f 1f 84 00 00 00 00 00	nopw 0x0(%rax,%rax,1)	
+54df98	48 83 c3 01	add $0x1,%rbx	rbx=1	
+54df9c	48 39 de	cmp %rbx,%rsi	rsi=2
+54df9f	74 73	je 0x54e014 rip=54dfa1
+54dfa1	45 84 ff	test %r15b,%r15b	
+54dfa4	48 0f 44 cd	cmove %rbp,%rcx	rcx=4a85d2d0
+54dfa8	4c 0f 44 eb	cmove %rbx,%r13r13=1
+54dfac	e9 37 ff ff ff	jmpq 0x54dee8 ip=54dee8
+54dfb1	0f 1f 80 00 00 00 00	nopl 0x0(%rax)
+54dee8	49 8b 3c de	mov (%r14,%rbx,8),%rdi	rdi=fffffffe484b9b06
+54deec	89 f8	mov %edi,%eax	eax=484b9b06
+54deee	89 fa	mov %edi,%edx	edx=484b9b06
+54def0	83 e0 07	and $0x7,%eax	eax=6
+54def3	83 f8 01	cmp $0x1,%eax	
+54def6	74 68	je 0x54df60 rip=54def8
+54def8	83 e2 03	and $0x3,%edx	edx=2
+54defb	83 fa 02	cmp $0x2,%edx	
+54defe	74 3c	je 0x54df3c rip=54df3c
+54df00	83 f8 07	cmp $0x7,%eax
+54df03	74 37	je 0x54df3c 54df3c	83 f8 07	cmp $0x7,%eax	eax=6
+54df3f	0f 84 2b 01 00 00	je 0x54e070 rip=54df45
+54df45	49 89 3c de	mov %rdi,(%r14,%rbx,8)	rdi=fffffffe484b9b06
+54df49	48 c1 ff 02	sar $0x2,%rdi	rdi=ffffffff9212e6c1
+54df4d	41 83 fc 06	cmp $0x6,%r12d	r12d=2
+54df51	77 2d	ja 0x54df80 rip=54df53
+54df53	44 89 e0	mov %r12d,%eax	eax=2
+54df56	ff 24 c5 98 b6 5f 00	jmpq *0x5fb698(,%rax,8)	rip=54dfd8
+54df5d	0f 1f 00	nopl (%rax)
+54dfd8	48 0f af fd	imul %rbp,%rdi	rdi=fffffffdceaced0	
+54dfdc	0f 90 c0	seto %al	al=0
+54dfdf	48 89 fd	mov %rdi,%rbp	rbp=dfffffffdceaced0
+54dfe2	41 09 c7	or %eax,%r15d	r15d=0
+54dfe5	eb b1	jmp 0x54df98 rip=54df98
+54dfe7	66 0f 1f 84 00 00 00 00 00	nopw 0x0(%rax,%rax,1)
+54df98	48 83 c3 01	add $0x1,%rbx	rbx=2
+54df9c	48 39 de	cmp %rbx,%rsi
+54df9f	74 73	je 0x54e014 rip=54e014
+54e014	48 8d 04 ad 02 00 00 00	lea 0x2(,%rbp,4),%rax	rax=7fffffff73ab3b42
+54e01c	48 83 c4 18	add $0x18,%rsp	rsp=7fffffff8a18
+54e020	5b	pop %rbx	rbx=M8[7fffffff8a18] rsp=7fffffff8a20
+54e021	5d	pop %rbp	rbp=M8[7fffffff8a20] rsp=7fffffff8a28
+54e022	41 5c	pop %r12	r12=M8[7fffffff8a28] rsp=7fffffff8a30
+54e024	41 5d	pop %r13	r13=M8[7fffffff8a30] rsp=7fffffff8a38
+54e026	41 5e	pop %r14	r14=M8[7fffffff8a38] rsp=7fffffff8a40
+54e028	41 5f	pop %r15	r15=M8[7fffffff8a40] rsp=7fffffff8a48
+54e02a	c3	retq	rip=564b2d

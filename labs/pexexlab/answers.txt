@@ -1,0 +1,33 @@
+answers.txt
+Luke Jung
+904-982-644
+CS33 Eggert Fall
+
+1. The instructions in the trace did not produce
+the correct result because there was an overflow
+error that is caused by:
+54e014	lea 0x2(,%rbp,4),%rax	rax=7fffffff73ab3b42
+command, since the rbp value is too large when multipled by 4
+in lea command.
+
+2. Going to the data.c file in emacs src file, we see that
+'most-negative-fixnum' traces all the way to MOST_NEGATIVE_FIXNUM
+This value comes from lisp.h, which says (-1 - MOST_POSITIVE_FIXNUM)
+and since the MOST_POSITIVE_FIXNUM is (EMACS_INT_MAX >> INTTYPEBITS-1)
+
+GCTYPEBITS = 3
+INTTYPEBITS= GCTYPEBITS-1, 
+EMACS_INT_MAX for x86-64 is 0x7fffffffffffffff
+
+Shifting it over by 1 and doing -1 - MOST_POSITIVE_FIXNUM equals
+-1 - 0xfffffffffffffff = -2305843009213693952
+
+3. In data.c, if there's a multiplication overflow, the result
+will mask the result with INTMASK, which is actually 0x3fffffffffffffff
+When we get the overflow with 4 most-positive-fixnum we get the 
+wrap and when it's ANDed with 0x3fffffffffffffff we get 
+0x1
+
+4. If we use -fwrapv, we will still get the wrong result because wravpv
+discards the the bits that don't fit the 64 bit word size.  Also, fwrapv
+just compares the numbers, meaning we don't even know if it overflowed.

@@ -1,0 +1,6 @@
+_Alignas
+16
+Since a char is a single byte, the _Alignas is 8, and the last char is another byte, however, the size of a structure must be a multitude of the most strict data type.
+
+Therefore, since 8 is the strictest data type, then it must be 16 since there are 10 
+Bytes in total.

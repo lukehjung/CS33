@@ -1,0 +1,36 @@
+pexex.txt
+Luke Jung
+904-982-644 
+CS33 Eggert Fall
+
+Gather Instruction Traces:
+
+1. gdb ~eggert/bin64/bin/emacs-26.1
+Open gdb with the directory of emacs 26.1
+
+2. (gdb) break Ftimes
+Set a breakpoint at function Times to check
+Every time Ftimes is called and check instructions
+
+3. (gdb) set disassemble-next-line on
+Show paragraphs of text whenever debugging it shows
+information of where the pointer is at
+
+4. r -batch -eval '(print (* 1250284240 -1844255039))'
+Run the eval function provided from the website
+
+5. (gdb) si
+Steps through each machine instruction one at a time
+
+6. (gdb) info registers $rip
+Check each register that was changed everytime step through
+an instruction
+
+Aside: Something that was frustrating was I wasn't able to step
+back when I was going through the code, so if I missed checking a
+register, I had to rerun the program.  However I realized I got 
+copy the machine instruction and break it there to quickly find my
+spot. 
+Also, I wasn't able to export my input to a log file because the pwd 
+was saved somewhere I wasn't able to create files, so I had to copy 
+paste a lot from terminal.

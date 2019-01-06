@@ -1,0 +1,14 @@
+3.70
+
+A. e1.p = 0
+e1.y = 8
+e2.x = 0
+e2.next = 8
+B. 16 because the biggest structure is 16 bytes long
+C. up -> e2.x = *(*(up->e2.next).e1.p ) - *(up->e2.next).e1.y
+line 2: using an offset 8 value. Could be e1.y or e2.next
+line 3: Putting result into new rdx register, implying pointer
+line 4: going into pointer value and offset 0 implies e1.p
+line 5: in subq, %rdx must be a long number, so %rax needs to be long too so 
+it has to subtract from e2.next.e1.y
+line 6: since %rdi never changes, has to be last variable so it all equals e2.x

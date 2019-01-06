@@ -1,0 +1,65 @@
+testovf.txt
+Luke Jung
+904-982-644
+CS33 Eggert Fall
+
+Examine integer overflow handling:
+
+O2:
+When I inputted the function and ran it in o2
+Compiler, I got the machine code:
+
+testovf:
+        pushq   %rbp
+        movq    %rsp, %rbp
+        movq    %rdi, -8(%rbp)
+        movl    $0, %eax
+        popq    %rbp
+        ret
+
+eax = result
+
+Reading through this code, the value consistently
+gives out a 0 regardless of the input, showing that
+the o2 compiler doesn't account for over flow, but 
+simply returns 0 for the overflow error
+
+o2 fwrapv:
+
+testovf:
+        pushq   %rbp
+        movq    %rsp, %rbp
+        movq    %rdi, -8(%rbp)
+        movabsq $9223372036854775807, %rdx
+        movq    -8(%rbp), %rax
+        addq    %rdx, %rax
+        cmpq    -8(%rbp), %rax
+        setl    %al
+        popq    %rbp
+        ret
+
+rdi = inputted value
+rdx = large int value given
+rax = result
+
+For the fwrap code, the compiler just goes about the
+comparison regardless of the digits. Here, I'm seeing 
+that we get a simple adder with the large int value 
+added to the inputted value and comparing them equal.
+This makes sense, because the fwrap takes overflow and
+wraps it around, therefore it would compare it regardless.
+
+o2 fsanitize:
+
+testovf:
+        pushq   %rbp
+        movq    %rsp, %rbp
+        movq    %rdi, -8(%rbp)
+        movl    $0, %eax
+        popq    %rbp
+        ret
+
+eax = result
+
+This result is the same as the original o2, and the
+reasoning should be the same as above.

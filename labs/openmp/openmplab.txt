@@ -1,0 +1,158 @@
+Luke Jung
+904-982-644
+CS33 Eggert Fall 2018
+
+1. Get the openMP Lab
+
+I downloaded the OpenMP lab material on CCLE and used Cyberduck to 
+transfer the file into the lnxsrv09
+
+2. Check to see where the bottleneck occurs
+
+We have to run the sequence program with gprof tag to see where the
+calls are occuring the most.
+
+make seq GPROF=1
+gprof seq | less
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 53.20      0.34     0.34       15    22.70    29.89  func1
+ 18.78      0.46     0.12  5177344     0.00     0.00  rand2
+ 13.30      0.55     0.09 67829762     0.00     0.00  round
+  3.13      0.57     0.02   491520     0.00     0.00  findIndexBin
+  3.13      0.59     0.02        1    20.03   117.37  addSeed
+  3.13      0.61     0.02        1    20.03    20.03  imdilateDisk
+  1.56      0.62     0.01       15     0.67     2.00  func5
+  1.56      0.63     0.01        2     5.01     5.01  init
+  1.56      0.64     0.01                             sequence
+  0.78      0.64     0.01        1     5.01     5.01  elapsed_time
+  0.00      0.64     0.00       16     0.00     0.00  dilateMatrix
+  0.00      0.64     0.00       15     0.00     0.00  func2
+  0.00      0.64     0.00       15     0.00     0.00  func3
+  0.00      0.64     0.00       15     0.00     0.00  func4
+  0.00      0.64     0.00       15     0.00     0.00  rand1
+  0.00      0.64     0.00        2     0.00     0.00  get_time
+  0.00      0.64     0.00        1     0.00     0.00  fillMatrix
+  0.00      0.64     0.00        1     0.00     0.00  func0
+  0.00      0.64     0.00        1     0.00     0.00  getNeighbors
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+Seeing this, it's obvious that func1 is called the most and spends
+the most time.  
+
+3. Make and run original sequence file
+Using make seq, we can find the original time of the function and see
+what we have to beat.
+
+FUNC TIME : 0.603372
+TOTAL TIME : 2.546328
+
+4. Edit the func.c Code
+Going through func.c code, I was honestly a bit overwhelmed and confused,
+but going through TA Varun's Slide it seemed like the Open MP function 
+makes multiple threads help to run the for loops much quicker
+
+So after figuring out the syntax of how to set the for loops to multiple 
+threading, I set most of the for loops that didn't have have too much 
+variable change and set the # for those
+
+On all the different functions, I put the following variations of 
+	
+	#pragma omp parallel for num_threads(30)
+
+This code uses the open mp functions with 30 threads, and I added
+different variations of private and firstprivate to initailze variables
+for certian functions to make it work better.
+
+I did this multithreading support for most of the functions, including 
+func1, func2, func4, and func5.  The rest of the functions would give me
+a check error when I made them so I decided not to use them.
+
+I also skimmed through the code to see where I could easily hoist code 
+code out and did so, but not in many places.
+
+5. Check the time difference
+make clean
+make omp 
+./omp
+
+FUNC TIME : 0.044356
+TOTAL TIME : 3.472515
+
+Finding the difference of this would be the original/new one which would
+be
+
+0.603372/0.044356 = 13.6x increase
+
+6. Check correctness and Memory leak
+make check
+
+FUNC TIME : 2.320375
+TOTAL TIME : 7.824447
+diff --brief correct.txt output.txt
+
+Gives us a longer time probably beacuse it's checking correctness and 
+shows us that the there is no difference meaning our answer should be
+correct.
+
+make omp MTRACE=1
+./omp
+make checkmem
+mtrace filter mtrace.out || true
+
+Memory not freed:
+-----------------
+           Address     Size     Caller
+0x00000000016d8070   0x1e90  at 0x7fa3f29797f9
+0x00000000016d9f10     0xc0  at 0x7fa3f29797f9
+0x00000000016d9fe0     0xf8  at 0x7fa3f2979849
+0x00000000016da0e0    0x240  at 0x7fa3f2eaa885
+0x00000000016da330    0x240  at 0x7fa3f2eaa885
+0x00000000016da580    0x240  at 0x7fa3f2eaa885
+0x00000000016da7d0    0x240  at 0x7fa3f2eaa885
+0x00000000016daa20    0x240  at 0x7fa3f2eaa885
+0x00000000016dac70    0x240  at 0x7fa3f2eaa885
+0x00000000016daec0    0x240  at 0x7fa3f2eaa885
+0x00000000016db110    0x240  at 0x7fa3f2eaa885
+0x00000000016db360    0x240  at 0x7fa3f2eaa885
+0x00000000016db5b0    0x240  at 0x7fa3f2eaa885
+0x00000000016db800    0x240  at 0x7fa3f2eaa885
+0x00000000016dba50    0x240  at 0x7fa3f2eaa885
+0x00000000016dbca0    0x240  at 0x7fa3f2eaa885
+0x00000000016dbef0    0x240  at 0x7fa3f2eaa885
+0x00000000016dc140    0x240  at 0x7fa3f2eaa885
+0x00000000016dc390    0x240  at 0x7fa3f2eaa885
+0x00000000016dc5e0    0x240  at 0x7fa3f2eaa885
+0x00000000016dc830    0x240  at 0x7fa3f2eaa885
+0x00000000016dca80    0x240  at 0x7fa3f2eaa885
+0x00000000016dccd0    0x240  at 0x7fa3f2eaa885
+0x00000000016dcf20    0x240  at 0x7fa3f2eaa885
+0x00000000016dd170    0x240  at 0x7fa3f2eaa885
+0x00000000016dd3c0    0x240  at 0x7fa3f2eaa885
+0x00000000016dd610    0x240  at 0x7fa3f2eaa885
+0x00000000016dd860    0x240  at 0x7fa3f2eaa885
+0x00000000016ddab0    0x240  at 0x7fa3f2eaa885
+0x00000000016ddd00    0x240  at 0x7fa3f2eaa885
+0x00000000016ddf50    0x240  at 0x7fa3f2eaa885
+0x00000000016de1a0    0x240  at 0x7fa3f2eaa885
+
+It seems like a lot of the memory isn't being freed, but looking at 
+at piazza, it seems like this is a common memory bug in open mp
+
+So according to one of the posts, I checked this without using
+openmp and ran through sequence
+
+make seq MTRACE=1
+./seq
+make checkmem
+mtrace filter mtrace.out || true
+mtrace filter mtrace.out || true
+No memory leaks.
+
+Since this works, I'm going to assume that it should work at most parts.  
